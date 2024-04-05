@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Møde-app</title>
+    <title>Mï¿½de-app</title>
     <meta charset="ISO-8859-1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.11/signalr.min.js"></script>
 </head>
@@ -19,10 +20,10 @@
     </div>
     <input type="text" id="userName" placeholder="Dit navn" />
     <div class="buttonBar">
-        <button onclick="queueUser()">Sæt i kø</button>
-        <button onclick="removeFirstUser()">Færdig med at tale</button>
+        <button onclick="queueUser()">Sï¿½t i kï¿½</button>
+        <button onclick="removeFirstUser()">Fï¿½rdig med at tale</button>
     </div>
-    <div id="userQueue">Kø:</div>
+    <div id="userQueue">Kï¿½:</div>
 
 <script>
 
@@ -59,18 +60,18 @@
 
     connection.on("UpdateQueue", (queue) => {
         const queueElement = document.getElementById("userQueue");
-        queueElement.innerHTML = "Kø: " + queue.join(", ");
+        queueElement.innerHTML = "Kï¿½: " + queue.join(", ");
     });
 
     connection.on("QueueCleared", () => {
         const queueElement = document.getElementById("userQueue");
-        queueElement.innerHTML = "Kø: ";
+        queueElement.innerHTML = "Kï¿½: ";
         document.getElementById("timerDisplay").innerHTML = "Timer: 00:00";
     });
 
     connection.on("TimerFinished", () => {
         const queueElement = document.getElementById("userQueue");
-        queueElement.innerHTML = "Kø: ";
+        queueElement.innerHTML = "Kï¿½: ";
     });
 
     connection.on("UpdateTime", (remainingTime) => {
