@@ -5,4 +5,4 @@
       context: .
       dockerfile: Dockerfile
     ports:
-      - 5120:8080
+      - 5120:80
