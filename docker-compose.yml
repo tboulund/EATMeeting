@@ -1,0 +1,8 @@
+﻿services:
+  eatmeeting:
+    image: eatmeeting
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 5120:8080

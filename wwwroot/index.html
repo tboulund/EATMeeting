@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Møde-app</title>
+    <meta charset="ISO-8859-1">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.11/signalr.min.js"></script>
+</head>
+<body>
+    <input type="number" id="timerMinutes" placeholder="Minutter" /> 
+    <div class="buttonBar">
+        <button onclick="startTimer()">Start timer</button>
+    </div>
+    <div id="timerContainer" class="timer-container">
+        <svg class="progress-ring" width="360" height="360">
+            <circle class="progress-ring__circle" stroke="#543477" stroke-width="12" fill="transparent" r="156" cx="180" cy="180"/>
+        </svg>
+        <span id="timerDisplay" class="timer-display">00:00</span>
+    </div>
+    <input type="text" id="userName" placeholder="Dit navn" />
+    <div class="buttonBar">
+        <button onclick="queueUser()">Sæt i kø</button>
+        <button onclick="removeFirstUser()">Færdig med at tale</button>
+    </div>
+    <div id="userQueue">Kø:</div>
+
+<script>
+
+    var totalMinutes = 0;
+    function setProgress(circle, percent) {
+        const radius = circle.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+
+        circle.style.strokeDasharray = `${circumference} ${circumference}`;
+        circle.style.strokeDashoffset = `${circumference - percent / 100 * circumference}`;
+    }
+    
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/meetingHub")
+        .build();
+
+    async function startTimer() {
+        const minutes = document.getElementById("timerMinutes").value.trim();
+        if(minutes !== "") {
+            await connection.invoke("StartTimer", parseInt(minutes));
+            totalMinutes = minutes;
+            document.getElementById("timerMinutes").value = "";
+        }
+    }
+
+    async function queueUser() {
+        const name = document.getElementById("userName").value;
+        await connection.invoke("QueueUser", name);
+    }
+
+    async function removeFirstUser() {
+        await connection.invoke("RemoveFirstUser");
+    }
+
+    connection.on("UpdateQueue", (queue) => {
+        const queueElement = document.getElementById("userQueue");
+        queueElement.innerHTML = "Kø: " + queue.join(", ");
+    });
+
+    connection.on("QueueCleared", () => {
+        const queueElement = document.getElementById("userQueue");
+        queueElement.innerHTML = "Kø: ";
+        document.getElementById("timerDisplay").innerHTML = "Timer: 00:00";
+    });
+
+    connection.on("TimerFinished", () => {
+        const queueElement = document.getElementById("userQueue");
+        queueElement.innerHTML = "Kø: ";
+    });
+
+    connection.on("UpdateTime", (remainingTime) => {
+        const totalTime = parseInt(totalMinutes) * 60; // Total time in seconds
+        const percent = (remainingTime / totalTime) * 100;
+        const circle = document.querySelector('.progress-ring__circle');
+
+        setProgress(circle, 100 - percent); // Update the progress circle
+
+        const minutes = Math.floor(remainingTime / 60);
+        const seconds = remainingTime % 60;
+        document.getElementById("timerDisplay").innerHTML = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+        if (remainingTime === 60) {
+            document.getElementById("1minSound").play();
+        }
+        
+        if (remainingTime <= 5 && remainingTime > 0) {
+            document.getElementById("tickSound").play();
+        }
+
+        // Play bell sound when time runs out
+        if (remainingTime === 0) {
+            document.getElementById("bellSound").play();
+        }
+    });
+    
+    
+
+    connection.start().catch(err => console.error(err.toString()));
+</script>
+    <audio id="tickSound" src="tick.wav" preload="auto"></audio>
+    <audio id="bellSound" src="bell.wav" preload="auto"></audio>
+    <audio id="1minSound" src="1min.wav" preload="auto"></audio>
+</body>
+</html>
